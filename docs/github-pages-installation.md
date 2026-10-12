@@ -1,7 +1,7 @@
 # Install and update RuN by Rj on Fedora
 
 1. Visit https://nrajesh0.github.io/run-by-rj-downloads/.
-2. Click **Install on Fedora**. Download the `.flatpakref` file if your browser
+2. Click **Install with Software**. Download the `.flatpakref` file if your browser
    asks, then open it in Fedora Software.
 3. Confirm the installation and adding the RuN update source. Fedora Software
    may also download the GNOME runtime from Flathub.
@@ -43,5 +43,5 @@ for both commands. Do not install a second copy unintentionally. These commands
 keep the same development branch and profile paths; do not use `--delete-data`.
 The website displays the publisher's public signing fingerprint. Normal releases
 retain that signing key. If a remote with this name already exists, check its
-URL with `flatpak remote-info`/`flatpak remotes --show-details` before proceeding;
+URL with `flatpak remotes --show-details` before proceeding;
 `--if-not-exists` does not change an existing remote.
