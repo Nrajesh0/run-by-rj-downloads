@@ -32,6 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          ref: 7e0fbb3cddc903998fae87a75cd8462c8eb01165
           persist-credentials: false
       - name: Install public verification tools
         run: |
@@ -45,7 +46,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
           REQUESTED_VERSION: ${{ github.event.client_payload.version || inputs.version }}
           BASE_URL: ${{ steps.pages.outputs.base_url }}
-          FLATPAK_GPG_FINGERPRINT: ${{ vars.FLATPAK_GPG_FINGERPRINT }}
         run: |
           python3 tools/verify_flatpak_site.py --output "$RUNNER_TEMP/verified-pages" --download
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
