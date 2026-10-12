@@ -111,12 +111,16 @@ def verify(assets, output, expected):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--config', type=Path, default=Path(__file__).resolve().parents[1] / 'distribution.json')
     parser.add_argument('--output', type=Path, required=True)
     modes = parser.add_mutually_exclusive_group(required=True)
     modes.add_argument('--download', action='store_true')
     modes.add_argument('--check-freshness', action='store_true')
     args = parser.parse_args()
+    config = json.loads(args.config.read_text())
     repository = os.environ.get('GH_REPO', '')
+    if repository != config['repository']:
+        raise ValueError('Unexpected downloads repository')
     if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository):
         raise ValueError('Invalid public repository')
     release = newest(repository)
@@ -130,7 +134,9 @@ def main():
     requested = os.environ.get('REQUESTED_VERSION', '')
     if requested and requested != release['tag_name'][1:]:
         raise ValueError('Requested version is not newest; refuse rollback')
-    pin = os.environ.get('FLATPAK_GPG_FINGERPRINT', '').strip().upper()
+    pin = config['fingerprint']
+    if os.environ.get('BASE_URL', '').rstrip('/') != config['base_url']:
+        raise ValueError('GitHub Pages URL differs from pinned distribution configuration')
     if not re.fullmatch(r'[0-9A-F]{40}|[0-9A-F]{64}', pin):
         raise ValueError('Set the full public FLATPAK_GPG_FINGERPRINT repository variable')
     obj = api(repository, 'git/ref/tags/' + release['tag_name'])['object']

@@ -22,3 +22,9 @@ apply. AppStream listing text alone uses [CC0](METADATA-LICENSE).
 For installation problems or security reporting, contact
 [Nrajesh0](https://github.com/Nrajesh0). Do not publish notes, PINs, recovery words,
 private keys or access tokens in issues.
+
+Pages runs its signature verifier and public distribution configuration from a
+fixed reviewed commit. The publishing token is scoped to release uploads in
+this repository and has no Workflows permission. Changing files on main does
+not change the verifier used by the pinned workflow. Signing keys and passphrase
+remain private; the fingerprint in distribution.json is intentionally public.
