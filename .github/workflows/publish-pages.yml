@@ -2,7 +2,7 @@ name: Verify release and deploy downloads
 
 on:
   repository_dispatch:
-    types: [flatpak-published]
+    types: [flatpak-published, website-published]
   workflow_dispatch:
     inputs:
       version:
@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: 7e0fbb3cddc903998fae87a75cd8462c8eb01165
+          ref: d0d67bbc9bf8ec6d0e8a286d8445d24036af5f91
           persist-credentials: false
       - name: Install public verification tools
         run: |
