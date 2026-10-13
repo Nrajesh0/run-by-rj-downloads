@@ -31,9 +31,13 @@ def identity(release, label):
     return values[0]
 
 
-def newest(repository):
+def all_releases(repository):
     pages = json.loads(command('gh', 'api', '--paginate', '--slurp', f'repos/{repository}/releases?per_page=100'))
-    candidates = [r for page in pages for r in page if not r['draft'] and
+    return [r for page in pages for r in page]
+
+
+def newest(repository):
+    candidates = [r for r in all_releases(repository) if not r['draft'] and
                   re.fullmatch(r'v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)', r['tag_name']) and
                   any(a['name'] == 'pages-site.tar.gz' for a in r['assets'])]
     if not candidates:
@@ -127,6 +131,10 @@ def main():
     receipt = {'release_id': release['id'], 'tag': release['tag_name'],
                'source': identity(release, 'RuN-Source-Commit'),
                'publication': identity(release, 'RuN-Publication-Commit')}
+    import verify_website as website
+    overlay = website.newest(all_releases(repository), release['tag_name'][1:])
+    receipt['website'] = website.receipt(overlay)
+    receipt['assets'] = website.receipt(release)['assets']
     if args.check_freshness:
         if json.loads((args.output / 'verified-release.json').read_text()) != receipt:
             raise ValueError('A newer or changed release exists; rerun deployment')
@@ -157,9 +165,14 @@ def main():
         for name in BOUNDS:
             subprocess.run(['gh', 'release', 'download', release['tag_name'], '--repo', repository,
                             '--dir', directory, '--pattern', name], check=True)
-        verify(Path(directory), args.output, {'version': release['tag_name'][1:], 'commit': receipt['source'],
+        expected = {'version': release['tag_name'][1:], 'commit': receipt['source'],
             'base_url': os.environ.get('BASE_URL', '').rstrip('/'), 'fingerprint': pin,
-            'branch': 'development-security-v2', 'application': 'io.github.nrajesh0.RunByRj'})
+            'branch': 'development-security-v2', 'application': 'io.github.nrajesh0.RunByRj'}
+        verify(Path(directory), args.output, expected)
+        website.apply(repository, overlay, args.output, expected,
+                      website.sha256(Path(directory) / 'pages-site.tar.gz'), __import__('types').SimpleNamespace(command=command, primary_keys=primary_keys, identity=identity, api=api))
+    if sum(p.stat().st_size for p in (args.output / 'site').rglob('*') if p.is_file()) > LIMIT:
+        raise ValueError('Combined app and website exceeds Pages budget')
     (args.output / 'verified-release.json').write_text(json.dumps(receipt))
     print('Verified signed site for ' + release['tag_name'])
 
